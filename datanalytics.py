@@ -25,8 +25,9 @@ def linearize(df):
         df.rename(columns={' Anlg #1': 'Oil Pressure (psi)'}, inplace=True)
     return df
 
-df = pd.read_csv('0918/0918preskidpad001.csv',encoding="latin1")
-df = clean(df)
-df = linearize(df)
-
-print(df.describe().transpose())
+for i in range(1,7):
+    df = pd.read_csv('0918/0918preskidpad00'+str(i)+'.csv',encoding="latin1")
+    df = clean(df)
+    df = linearize(df)
+    print(df.describe().transpose())
+    df.to_csv('0918/0918preskidpad00'+str(i)+'_clean.csv', index=False)
