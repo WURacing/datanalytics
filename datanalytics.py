@@ -9,6 +9,7 @@ except:
     print("Usage: python datanalytics.py <directory>")
     exit()
 
+# Cleans csv file that PE3 outputs
 def clean(df):
     # Drop bad columns and rows
     df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
@@ -31,19 +32,21 @@ def clean(df):
     df = df.apply(pd.to_numeric)
     return df
 
+# Linearizes iColumn and renames to iColumn
 def linearize(df, iColumn, oColumn, m, b=0):
     if iColumn in df.columns:
         df[iColumn] = (df[iColumn] * m) + b
         df.rename(columns={iColumn: oColumn}, inplace=True)
     return df
 
+# For data that was collected before PE3 config was fixed
 def fixbad(df, columns):
     for column in columns:
         if column in df.columns:
             df[column] = df[column] / 1.954
     return df
 
-
+# Plot columns on x
 def plot(df, x, columns, title=None):
     for column in columns:
         if (not column in df.columns):
