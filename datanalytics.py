@@ -42,16 +42,22 @@ def linearize(df):
         df['Anlg #2'] = (df['Anlg #2'] * 2.5) - 6.25
         df.rename(columns={'Anlg #2': '-X Acceleration (g)'}, inplace=True)
     
-    # Calculate change in temperature from front radiator (Anlg #3) to back (Anlg #4) Inlet/Outlet Radiator temp
-    if 'Anlg #3' in df.columns and 'Anlg #4' in df.columns:
-        df['Anlg #3'] = df['Anlg #3'] - df['Anlg #4']
-        df.rename(columns={'Anlg #3': 'Radiator DeltaT (F)'}, inplace=True)
-        df = df.drop('Anlg #4', axis=1)
+    # Linearize Anlg #3 and #4 and rename to Radiator Front and Radiator Rear (need to check this is the right sensor)
+    if 'Anlg #3' in df.columns:
+        df['Anlg #3'] = (df['Anlg #3'] * -72.7859) + 190.956
+        df.rename(columns={'Anlg #3': 'Radiator Front (deg C)'}, inplace=True)
+    if 'Anlg #4' in df.columns:
+        df['Anlg #4'] = (df['Anlg #4'] * -72.7859) + 190.956
+        df.rename(columns={'Anlg #4': 'Radiator Rear (deg C)'}, inplace=True)
+    
 
     # Linearize Anlg #6 and rename to O2 (lambda)
     if 'Anlg #6' in df.columns:
         df['Anlg #6'] = (df['Anlg #6'] * 0.14) + 0.58
         df.rename(columns={'Anlg #6': 'O2 (lambda)'}, inplace=True)
+
+    if 'Anlg #7' in df.columns:
+        df.rename(columns={'Anlg #7': 'Gear Position (V)'}, inplace=True)
 
     return df
 
@@ -77,5 +83,5 @@ for filename in os.listdir(DIRECTORY):
     df = clean(df)
     df = fixbad(df, ['Anlg #1', 'Anlg #2', 'Anlg #3', 'Anlg #4', 'Anlg #5','Anlg #6','Anlg #7','Anlg #8'])
     df = linearize(df)
-    # print(f"{df.describe().transpose()}\n\n")
+    print(f"{df.describe().transpose()}\n\n")
     # plot(df,'Time (sec)' , ['Anlg #1','Anlg #2','Anlg #3','Anlg #4','Anlg #5','Anlg #6','Anlg #7','Anlg #8'], title=filename)
