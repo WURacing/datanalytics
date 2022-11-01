@@ -31,34 +31,10 @@ def clean(df):
     df = df.apply(pd.to_numeric)
     return df
 
-def linearize(df):
-    # Linearize Anlg #1 and rename to Oil Pressure (psi)
-    if 'Anlg #1' in df.columns:
-        df['Anlg #1'] = df['Anlg #1'] * 20
-        df.rename(columns={'Anlg #1': 'Oil Pressure (psi)'}, inplace=True)
-
-    # Linearize Anlg #2 and rename to -X Acceleration (g)
-    if 'Anlg #2' in df.columns:
-        df['Anlg #2'] = (df['Anlg #2'] * 2.5) - 6.25
-        df.rename(columns={'Anlg #2': '-X Acceleration (g)'}, inplace=True)
-    
-    # Linearize Anlg #3 and #4 and rename to Radiator Front and Radiator Rear (need to check this is the right sensor)
-    if 'Anlg #3' in df.columns:
-        df['Anlg #3'] = (df['Anlg #3'] * -72.7859) + 190.956
-        df.rename(columns={'Anlg #3': 'Radiator Front (deg C)'}, inplace=True)
-    if 'Anlg #4' in df.columns:
-        df['Anlg #4'] = (df['Anlg #4'] * -72.7859) + 190.956
-        df.rename(columns={'Anlg #4': 'Radiator Rear (deg C)'}, inplace=True)
-    
-
-    # Linearize Anlg #6 and rename to O2 (lambda)
-    if 'Anlg #6' in df.columns:
-        df['Anlg #6'] = (df['Anlg #6'] * 0.14) + 0.58
-        df.rename(columns={'Anlg #6': 'O2 (lambda)'}, inplace=True)
-
-    if 'Anlg #7' in df.columns:
-        df.rename(columns={'Anlg #7': 'Gear Position (V)'}, inplace=True)
-
+def linearize(df, iColumn, oColumn, m, b=0):
+    if iColumn in df.columns:
+        df[iColumn] = (df[iColumn] * m) + b
+        df.rename(columns={iColumn: oColumn}, inplace=True)
     return df
 
 def fixbad(df, columns):
@@ -82,6 +58,11 @@ for filename in os.listdir(DIRECTORY):
     df = pd.read_csv(f"{DIRECTORY}{filename}", encoding="latin1")
     df = clean(df)
     df = fixbad(df, ['Anlg #1', 'Anlg #2', 'Anlg #3', 'Anlg #4', 'Anlg #5','Anlg #6','Anlg #7','Anlg #8'])
-    df = linearize(df)
+    df = linearize(df, 'Anlg #1', 'Oil Pressure (psi)', 20)
+    df = linearize(df, 'Anlg #2', '-X Acceleration (g)', 2.5, -6.25)
+    df = linearize(df, 'Anlg #3', 'Radiator Front (deg C)', -72.7859, 190.956)
+    df = linearize(df, 'Anlg #4', 'Radiator Rear (deg C)', -72.7859, 190.956)
+    df = linearize(df, 'Anlg #6', 'O2 (lambda)', 0.14, 0.58)
+    df = linearize(df, 'Anlg #7', 'Gear Position (V)', 1)
     print(f"{df.describe().transpose()}\n\n")
     # plot(df,'Time (sec)' , ['Anlg #1','Anlg #2','Anlg #3','Anlg #4','Anlg #5','Anlg #6','Anlg #7','Anlg #8'], title=filename)
