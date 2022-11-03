@@ -4,9 +4,12 @@ import os
 import sys
 
 try:
-    DIRECTORY = sys.argv[1]
+    I_DIRECTORY = sys.argv[1]
+    O_DIRECTORY = None
+    if len(sys.argv) > 2:
+        O_DIRECTORY = sys.argv[2]
 except:
-    print("Usage: python datanalytics.py <directory>")
+    print("Usage: python datanalytics.py <input directory> <output directory>")
     exit()
 
 # Cleans csv file that PE3 outputs
@@ -56,11 +59,14 @@ def plot(df, x, columns, title=None):
     plt.title(title)
     plt.show()
 
-for filename in os.listdir(DIRECTORY):
+def export(df, filename):
+    df.to_csv(filename)
+
+for filename in os.listdir(I_DIRECTORY):
     print("Processing", filename)
-    df = pd.read_csv(f"{DIRECTORY}{filename}", encoding="latin1")
+    df = pd.read_csv(f"{I_DIRECTORY}{filename}", encoding="latin1")
     df = clean(df)
-    df = fixbad(df, ['Anlg #1', 'Anlg #2', 'Anlg #3', 'Anlg #4', 'Anlg #5','Anlg #6','Anlg #7','Anlg #8'])
+    # df = fixbad(df, ['Anlg #1', 'Anlg #2', 'Anlg #3', 'Anlg #4', 'Anlg #5','Anlg #6','Anlg #7','Anlg #8'])
     df = linearize(df, 'Anlg #1', 'Oil Pressure (psi)', 20)
     df = linearize(df, 'Anlg #2', '-X Acceleration (g)', 2.5, -6.25)
     df = linearize(df, 'Anlg #3', 'Radiator Front (deg C)', -72.7859, 190.956)
@@ -68,4 +74,6 @@ for filename in os.listdir(DIRECTORY):
     df = linearize(df, 'Anlg #6', 'O2 (lambda)', 0.14, 0.58)
     df = linearize(df, 'Anlg #7', 'Gear Position (V)', 1)
     print(f"{df.describe().transpose()}\n\n")
-    # plot(df,'Time (sec)' , ['Anlg #1','Anlg #2','Anlg #3','Anlg #4','Anlg #5','Anlg #6','Anlg #7','Anlg #8'], title=filename)
+    # plot(df,'Time (sec)' , ['O2 (lambda)'], title=filename)
+    if O_DIRECTORY:
+        export(df, f"{O_DIRECTORY}{filename}")
